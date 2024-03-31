@@ -76,30 +76,34 @@ word_size sext(word_size value, const int bit_position) {
 word_size add(const word_size instruction) {
     const word_size source_register_1 = SOURCE_REGISTER_1(instruction);
     const word_size source_register_2 = SOURCE_REGISTER_2(instruction);
+    const word_size destination_register = DESTINATION_REGISTER(instruction);
+
     const word_size first_operand = registers_mem[source_register_1];
     const word_size second_operand = registers_mem[source_register_2];
     const word_size sum = first_operand + second_operand;
 
     printf("First operand: r%u -- %d\n", source_register_1, first_operand);
     printf("Second operand: r%u -- %d\n", source_register_2, second_operand);
-    printf("Sum: %d\n", sum);
+    printf("Sum: r%u -- %d\n", destination_register, sum);
 
-    registers_mem[DESTINATION_REGISTER(instruction)] = sum;
+    registers_mem[destination_register] = sum;
 
     return sum;
 }
 
 word_size decrement(const word_size instruction) {
     const word_size source_register = SOURCE_REGISTER_1(instruction);
+    const word_size destination_register = DESTINATION_REGISTER(instruction);
+
     const word_size first_operand = registers_mem[source_register];
     const word_size immediate = SEXTIMM(instruction);
     const word_size difference = first_operand - immediate;
 
     printf("First operand: r%u -- %d\n", source_register, first_operand);
     printf("Immediate: %d\n", immediate);
-    printf("Difference: %d\n", difference);
+    printf("Difference: r%u -- %d\n", destination_register, difference);
 
-    registers_mem[DESTINATION_REGISTER(instruction)] = difference;
+    registers_mem[destination_register] = difference;
 
     return difference;
 }
@@ -107,15 +111,17 @@ word_size decrement(const word_size instruction) {
 word_size and(const word_size instruction) {
     const word_size source_register_1 = SOURCE_REGISTER_1(instruction);
     const word_size source_register_2 = SOURCE_REGISTER_2(instruction);
+    const word_size destination_register = DESTINATION_REGISTER(instruction);
+
     const word_size first_operand = registers_mem[source_register_1];
     const word_size second_operand = registers_mem[source_register_2];
     const word_size result = first_operand & second_operand;
 
     printf("First operand: r%u -- %d\n", source_register_1, first_operand);
     printf("Second operand: r%u -- %d\n", source_register_2, second_operand);
-    printf("And: %d\n", result);
+    printf("And: r%u -- %d\n", destination_register, result);
 
-    registers_mem[DESTINATION_REGISTER(instruction)] = result;
+    registers_mem[destination_register] = result;
 
     return result;
 }
@@ -123,15 +129,17 @@ word_size and(const word_size instruction) {
 word_size xor(const word_size instruction) {
     const word_size source_register_1 = SOURCE_REGISTER_1(instruction);
     const word_size source_register_2 = SOURCE_REGISTER_2(instruction);
+    const word_size destination_register = DESTINATION_REGISTER(instruction);
+
     const word_size first_operand = registers_mem[source_register_1];
     const word_size second_operand = registers_mem[source_register_2];
     const word_size result = first_operand ^ second_operand;
 
     printf("First operand: r%u -- %d\n", source_register_1, first_operand);
     printf("Second operand: r%u -- %d\n", source_register_2, second_operand);
-    printf("Xor: %d\n", result);
+    printf("Xor: r%u -- %d\n", destination_register, result);
 
-    registers_mem[DESTINATION_REGISTER(instruction)] = result;
+    registers_mem[destination_register] = result;
 
     return result;
 }
@@ -139,6 +147,9 @@ word_size xor(const word_size instruction) {
 word_size load_to_register(const word_size instruction) {
     const word_size immediate = SEXTIMM(instruction);
     const word_size destination_register = DESTINATION_REGISTER(instruction);
+
+    printf("Immediate: %d\n", immediate);
+    printf("Destination register: r%u\n", destination_register);
 
     registers_mem[destination_register] = immediate;
 
@@ -161,6 +172,15 @@ instruction_handler instruction_handlers[OP_NUMBER] = {
         load_to_register,
         halt
 };
+
+void print_binary(const word_size number) {
+    for (int i = 15; i >= 0; i--) {
+        printf("%d", IS_ONE(number, i));
+    }
+
+    printf("\n");
+
+}
 
 void execute_instruction(const word_size instruction) {
     const word_size op_code = GET_OP_CODE(instruction);
@@ -206,6 +226,8 @@ void read_and_execute(const char *filename) {
         instruction = read_memory(registers_mem[RPC]++);
 
         printf("Instruction: %04X\n", instruction);
+        printf("Instruction (binary): ");
+        print_binary(instruction);
 
         execute_instruction(instruction);
 
